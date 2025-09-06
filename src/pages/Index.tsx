@@ -48,6 +48,7 @@ const Index = () => {
     visualizations: [],
     activeTab: 'chat',
     isLoading: false,
+    dashboardLayouts: {},
   });
 
   const handleUploadSuccess = useCallback((filename: string) => {
@@ -150,6 +151,13 @@ const Index = () => {
     }));
   }, []);
 
+  const handleLayoutChange = useCallback((layouts: { [key: string]: any[] }) => {
+    setAppState(prev => ({
+      ...prev,
+      dashboardLayouts: layouts,
+    }));
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {appState.isUploaded && (
@@ -171,8 +179,10 @@ const Index = () => {
       ) : (
         <Dashboard
           visualizations={appState.visualizations}
+          dashboardLayouts={appState.dashboardLayouts}
           onVisualizationUpdate={handleVisualizationUpdate}
           onVisualizationRemove={handleVisualizationRemove}
+          onLayoutChange={handleLayoutChange}
         />
       )}
     </div>

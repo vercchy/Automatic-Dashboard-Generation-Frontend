@@ -8,60 +8,62 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 220 13% 98%;
-    --foreground: 220 10% 15%;
+    --background: 240 10% 6%;
+    --foreground: 210 40% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 10% 15%;
+    --card: 240 8% 10%;
+    --card-foreground: 210 40% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 10% 15%;
+    --popover: 240 8% 10%;
+    --popover-foreground: 210 40% 95%;
 
-    --primary: 200 95% 40%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 280 100% 70%;
+    --primary-foreground: 240 10% 6%;
     
-    --primary-glow: 200 100% 60%;
-    --primary-soft: 200 100% 95%;
+    --primary-glow: 280 100% 80%;
+    --primary-soft: 280 50% 15%;
     
-    --secondary: 220 15% 96%;
-    --secondary-foreground: 220 10% 15%;
+    --secondary: 240 6% 18%;
+    --secondary-foreground: 210 40% 95%;
 
-    --muted: 220 15% 96%;
-    --muted-foreground: 220 8% 45%;
+    --muted: 240 6% 18%;
+    --muted-foreground: 210 15% 65%;
 
-    --accent: 200 100% 95%;
-    --accent-foreground: 200 95% 30%;
+    --accent: 330 80% 50%;
+    --accent-foreground: 240 10% 6%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 210 40% 95%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 200 95% 40%;
+    --border: 240 6% 20%;
+    --input: 240 6% 20%;
+    --ring: 280 100% 70%;
 
     --radius: 0.75rem;
 
     /* Chat specific colors */
-    --chat-user-bg: 200 95% 40%;
-    --chat-user-text: 0 0% 100%;
-    --chat-bot-bg: 220 15% 96%;
-    --chat-bot-text: 220 10% 15%;
+    --chat-user-bg: 280 100% 70%;
+    --chat-user-text: 240 10% 6%;
+    --chat-bot-bg: 240 6% 18%;
+    --chat-bot-text: 210 40% 95%;
 
     /* Dashboard colors */
-    --dashboard-bg: 220 20% 97%;
-    --card-shadow: 220 15% 85%;
+    --dashboard-bg: 240 8% 8%;
+    --card-shadow: 240 10% 3%;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(200 95% 40%), hsl(200 100% 60%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 15% 98%));
+    --gradient-primary: linear-gradient(135deg, hsl(280 100% 70%), hsl(330 80% 50%));
+    --gradient-card: linear-gradient(145deg, hsl(240 8% 10%), hsl(240 6% 12%));
+    --gradient-glow: linear-gradient(135deg, hsl(280 100% 70% / 0.1), hsl(330 80% 50% / 0.1));
     
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     
     /* Shadows */
-    --shadow-card: 0 4px 20px -2px hsl(220 15% 85% / 0.3);
-    --shadow-elevated: 0 8px 30px -4px hsl(200 95% 40% / 0.2);
+    --shadow-card: 0 4px 20px -2px hsl(240 10% 3% / 0.6);
+    --shadow-elevated: 0 8px 30px -4px hsl(280 100% 70% / 0.3);
+    --shadow-neon: 0 0 40px hsl(280 100% 70% / 0.4);
 
     --radius: 0.75rem;
 
@@ -82,55 +84,55 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  .dark {
-    --background: 220 25% 8%;
-    --foreground: 220 15% 92%;
+  .light {
+    --background: 210 40% 98%;
+    --foreground: 240 10% 6%;
 
-    --card: 220 20% 10%;
-    --card-foreground: 220 15% 92%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 6%;
 
-    --popover: 220 20% 10%;
-    --popover-foreground: 220 15% 92%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 6%;
 
-    --primary: 200 95% 50%;
-    --primary-foreground: 220 25% 8%;
+    --primary: 280 100% 70%;
+    --primary-foreground: 240 10% 6%;
     
-    --primary-glow: 200 100% 70%;
-    --primary-soft: 200 50% 15%;
+    --primary-glow: 280 100% 80%;
+    --primary-soft: 280 50% 95%;
 
-    --secondary: 220 15% 15%;
-    --secondary-foreground: 220 15% 92%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 240 10% 6%;
 
-    --muted: 220 15% 15%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 240 5% 45%;
 
-    --accent: 200 50% 15%;
-    --accent-foreground: 200 95% 60%;
+    --accent: 330 80% 50%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 75% 55%;
-    --destructive-foreground: 220 15% 92%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 220 15% 20%;
-    --input: 220 15% 20%;
-    --ring: 200 95% 50%;
+    --border: 210 20% 91%;
+    --input: 210 20% 91%;
+    --ring: 280 100% 70%;
 
-    /* Chat specific colors - dark mode */
-    --chat-user-bg: 200 95% 50%;
-    --chat-user-text: 220 25% 8%;
-    --chat-bot-bg: 220 15% 15%;
-    --chat-bot-text: 220 15% 92%;
+    /* Chat specific colors - light mode */
+    --chat-user-bg: 280 100% 70%;
+    --chat-user-text: 240 10% 6%;
+    --chat-bot-bg: 210 20% 96%;
+    --chat-bot-text: 240 10% 6%;
 
-    /* Dashboard colors - dark mode */
-    --dashboard-bg: 220 20% 12%;
-    --card-shadow: 220 30% 5%;
+    /* Dashboard colors - light mode */
+    --dashboard-bg: 210 30% 97%;
+    --card-shadow: 210 20% 85%;
     
-    /* Gradients - dark mode */
-    --gradient-primary: linear-gradient(135deg, hsl(200 95% 50%), hsl(200 100% 70%));
-    --gradient-card: linear-gradient(145deg, hsl(220 20% 10%), hsl(220 15% 12%));
+    /* Gradients - light mode */
+    --gradient-primary: linear-gradient(135deg, hsl(280 100% 70%), hsl(330 80% 50%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 20% 98%));
     
-    /* Shadows - dark mode */
-    --shadow-card: 0 4px 20px -2px hsl(220 30% 5% / 0.6);
-    --shadow-elevated: 0 8px 30px -4px hsl(200 95% 50% / 0.3);
+    /* Shadows - light mode */
+    --shadow-card: 0 4px 20px -2px hsl(210 20% 85% / 0.3);
+    --shadow-elevated: 0 8px 30px -4px hsl(280 100% 70% / 0.2);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -186,10 +188,16 @@ All colors MUST be HSL.
   .card-elevated {
     box-shadow: var(--shadow-card);
     background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
   }
 
   .card-floating {
     box-shadow: var(--shadow-elevated);
+  }
+
+  .card-neon {
+    box-shadow: var(--shadow-neon);
+    background: var(--gradient-glow);
   }
 
   .transition-smooth {
@@ -219,6 +227,7 @@ All colors MUST be HSL.
 
   .react-grid-placeholder {
     @apply bg-primary/20 border-2 border-dashed border-primary rounded-lg;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
   }
 
   /* Loading animations */

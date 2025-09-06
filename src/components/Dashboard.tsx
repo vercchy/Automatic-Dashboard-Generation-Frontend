@@ -14,12 +14,13 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 
 interface DashboardProps {
   visualizations: Visualization[];
+  dashboardLayouts: { [key: string]: any[] };
   onVisualizationUpdate: (id: string, updates: Partial<Visualization>) => void;
   onVisualizationRemove: (id: string) => void;
+  onLayoutChange: (layouts: { [key: string]: any[] }) => void;
 }
 
-const Dashboard = ({ visualizations, onVisualizationUpdate, onVisualizationRemove }: DashboardProps) => {
-  const [layouts, setLayouts] = useState<{ [key: string]: Layout[] }>({});
+const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, onVisualizationRemove, onLayoutChange }: DashboardProps) => {
   const [selectedVisualization, setSelectedVisualization] = useState<Visualization | null>(null);
   const [isConfigEditorOpen, setIsConfigEditorOpen] = useState(false);
   const { toast } = useToast();
@@ -38,7 +39,7 @@ const Dashboard = ({ visualizations, onVisualizationUpdate, onVisualizationRemov
   }, [visualizations]);
 
   const handleLayoutChange = (layout: Layout[], layouts: { [key: string]: Layout[] }) => {
-    setLayouts(layouts);
+    onLayoutChange(layouts);
   };
 
   const handleDownload = (visualization: Visualization) => {
@@ -150,7 +151,7 @@ const Dashboard = ({ visualizations, onVisualizationUpdate, onVisualizationRemov
       <div className="p-6">
         <ResponsiveGridLayout
           className="layout"
-          layouts={layouts}
+          layouts={dashboardLayouts}
           onLayoutChange={handleLayoutChange}
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
           cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}

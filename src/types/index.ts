@@ -26,6 +26,7 @@ export interface AppState {
   visualizations: Visualization[];
   activeTab: 'chat' | 'dashboard';
   isLoading: boolean;
+  dashboardLayouts: { [key: string]: any[] };
 }
 
 export interface GridLayout {
