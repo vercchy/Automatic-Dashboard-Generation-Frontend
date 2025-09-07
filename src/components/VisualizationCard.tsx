@@ -1,9 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Settings, X, ZoomIn, ZoomOut, Camera, RotateCcw } from "lucide-react";
+import { Download, Settings, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { Visualization } from "@/types";
 import Plot from "react-plotly.js";
 import Plotly from "plotly.js-dist";
+import { useRef, useCallback } from "react";
 
 interface VisualizationCardProps {
   visualization: Visualization;
@@ -20,6 +21,7 @@ const VisualizationCard = ({
   onConfigChange,
   onRemove 
 }: VisualizationCardProps) => {
+  const plotRef = useRef<any>(null);
   
   const handleDownloadVisualization = () => {
     const title = visualization.title || `${visualization.type}_visualization`;
@@ -62,18 +64,68 @@ const VisualizationCard = ({
     });
   };
   
+  // Zoom and reset functions
+  const handleZoomIn = useCallback(() => {
+    if (plotRef.current) {
+      const currentLayout = plotRef.current.layout;
+      const xRange = currentLayout.xaxis?.range;
+      const yRange = currentLayout.yaxis?.range;
+      
+      if (xRange && yRange) {
+        const xCenter = (xRange[0] + xRange[1]) / 2;
+        const yCenter = (yRange[0] + yRange[1]) / 2;
+        const xSpan = (xRange[1] - xRange[0]) * 0.7;
+        const ySpan = (yRange[1] - yRange[0]) * 0.7;
+        
+        Plotly.relayout(plotRef.current, {
+          'xaxis.range': [xCenter - xSpan/2, xCenter + xSpan/2],
+          'yaxis.range': [yCenter - ySpan/2, yCenter + ySpan/2]
+        });
+      }
+    }
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    if (plotRef.current) {
+      const currentLayout = plotRef.current.layout;
+      const xRange = currentLayout.xaxis?.range;
+      const yRange = currentLayout.yaxis?.range;
+      
+      if (xRange && yRange) {
+        const xCenter = (xRange[0] + xRange[1]) / 2;
+        const yCenter = (yRange[0] + yRange[1]) / 2;
+        const xSpan = (xRange[1] - xRange[0]) * 1.4;
+        const ySpan = (yRange[1] - yRange[0]) * 1.4;
+        
+        Plotly.relayout(plotRef.current, {
+          'xaxis.range': [xCenter - xSpan/2, xCenter + xSpan/2],
+          'yaxis.range': [yCenter - ySpan/2, yCenter + ySpan/2]
+        });
+      }
+    }
+  }, []);
+
+  const handleResetZoom = useCallback(() => {
+    if (plotRef.current) {
+      Plotly.relayout(plotRef.current, {
+        'xaxis.autorange': true,
+        'yaxis.autorange': true
+      });
+    }
+  }, []);
+
   // Get dimensions from config_used if available
   const getVisualizationDimensions = () => {
     const configData = visualization.config_used?.data?.visualization;
     if (configData && configData.width && configData.height) {
       return {
-        width: Math.max(configData.width, isInChat ? 400 : 800),
-        height: Math.max(configData.height, isInChat ? 300 : 600)
+        width: Math.max(configData.width, isInChat ? 400 : 700),
+        height: Math.max(configData.height, isInChat ? 300 : 500)
       };
     }
     return { 
-      width: isInChat ? '100%' : 800, 
-      height: isInChat ? '300px' : 600 
+      width: isInChat ? '100%' : 700, 
+      height: isInChat ? '300px' : 500 
     };
   };
 
@@ -131,6 +183,7 @@ const VisualizationCard = ({
           style={isInChat ? { height: '300px' } : { minHeight: '400px', height: 'auto' }}
         >
           <Plot
+            ref={plotRef}
             data={visualization.figure.data}
             layout={{
               ...visualization.figure.layout,
@@ -168,6 +221,7 @@ const VisualizationCard = ({
             <Button
               variant="ghost"
               size="sm"
+              onClick={handleZoomIn}
               className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
               title="Zoom In"
             >
@@ -176,6 +230,7 @@ const VisualizationCard = ({
             <Button
               variant="ghost"
               size="sm"
+              onClick={handleZoomOut}
               className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
               title="Zoom Out"
             >
@@ -184,15 +239,7 @@ const VisualizationCard = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleDownloadVisualization}
-              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-              title="Download Snapshot"
-            >
-              <Camera className="w-3 h-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
+              onClick={handleResetZoom}
               className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
               title="Reset Zoom"
             >

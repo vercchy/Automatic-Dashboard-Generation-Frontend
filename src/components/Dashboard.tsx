@@ -32,9 +32,11 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
     return visualizations.map((viz, index) => {
       const configData = viz.config_used?.data?.visualization;
       
-      // Set minimum size to 800px width, 600px height
-      const minWidth = Math.max(Math.ceil((800 + 100) / 76), 12); // ~12 grid units for 800px
-      const minHeight = Math.max(Math.ceil((600 + 150) / 76), 10); // ~10 grid units for 600px
+      // Set default proportional size: 700px width, 500px height
+      const defaultWidth = 700;
+      const defaultHeight = 500;
+      const minWidth = Math.max(Math.ceil((defaultWidth + 100) / 76), 10); // ~10 grid units for 700px
+      const minHeight = Math.max(Math.ceil((defaultHeight + 150) / 76), 9); // ~9 grid units for 500px
       
       let width = minWidth;
       let height = minHeight;
@@ -189,7 +191,7 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
       </div>
 
       {/* Grid Layout */}
-      <div className="p-6">
+      <div className="p-6 min-h-full dashboard-bg">
         <ResponsiveGridLayout
           className="layout"
           layouts={dashboardLayouts}
@@ -202,6 +204,7 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
           margin={[16, 16]}
           containerPadding={[0, 0]}
           useCSSTransforms={true}
+          autoSize={true}
         >
           {visualizations.map((visualization) => (
             <div key={visualization.id}>
