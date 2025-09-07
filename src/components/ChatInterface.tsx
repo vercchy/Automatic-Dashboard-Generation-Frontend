@@ -3,17 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Send, Bot, User, Loader2 } from "lucide-react";
-import Plotly from "plotly.js-dist";
-import { ChatMessage } from "@/types";
+import {ChatMessage, Visualization} from "@/types";
 import VisualizationCard from "./VisualizationCard";
+
 
 interface ChatInterfaceProps {
   messages: ChatMessage[];
   isLoading: boolean;
   onSendMessage: (message: string) => void;
+  onSendToDashboard: (viz: Visualization) => void;
 }
 
-const ChatInterface = ({ messages, isLoading, onSendMessage }: ChatInterfaceProps) => {
+const ChatInterface = ({ messages, isLoading, onSendMessage, onSendToDashboard }: ChatInterfaceProps) => {
   const [input, setInput] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -32,7 +33,6 @@ const ChatInterface = ({ messages, isLoading, onSendMessage }: ChatInterfaceProp
       onSendMessage(input.trim());
       setInput("");
       setIsExpanded(false);
-      // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -48,34 +48,12 @@ const ChatInterface = ({ messages, isLoading, onSendMessage }: ChatInterfaceProp
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
-    
-    // Auto-expand textarea
     const textarea = e.target;
     textarea.style.height = 'auto';
     const newHeight = Math.min(textarea.scrollHeight, 120);
     textarea.style.height = `${newHeight}px`;
     setIsExpanded(newHeight > 40);
   };
-
-    const handleDownloadVisualization = (figure) => {
-        if (!figure) return;
-        const rawTitle = figure.layout?.title;
-        const title = typeof rawTitle === "string"
-            ? rawTitle
-            : rawTitle?.text ?? "Generated Visualization";
-        const title_with_underscores = title.replace(' ', '_')
-
-        Plotly.toImage(figure, { format: "png", width: 800, height: 600 })
-            .then((url) => {
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = title_with_underscores;
-                link.click();
-            })
-            .catch((err) => {
-                console.error("Failed to download visualization:", err);
-            });
-    };
 
   const TypingIndicator = () => (
     <div className="flex items-center space-x-1">
@@ -90,25 +68,7 @@ const ChatInterface = ({ messages, isLoading, onSendMessage }: ChatInterfaceProp
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-background">
-      {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-              <Bot className="w-8 h-8 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Welcome to Data Exploration</h3>
-              <p className="text-muted-foreground max-w-md">
-                Start by asking questions about your data. I can help you explore patterns, 
-                create visualizations, and generate insights from your Neo4j database.
-              </p>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              <p>Try asking: "Show me the distribution of nodes" or "What are the most connected entities?"</p>
-            </div>
-          </div>
-        ) : (
           <>
             {messages.map((message) => (
               <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -137,11 +97,14 @@ const ChatInterface = ({ messages, isLoading, onSendMessage }: ChatInterfaceProp
                         <VisualizationCard
                           visualization={message.visualization}
                           isInChat={true}
-                          onDownload={() => handleDownloadVisualization(message.visualization.figure)}
+                          onDownload={() => {
+                              console.log("Download visualization")
+                          }}
                           onConfigChange={() => {
                             // Config change implementation would go here
                             console.log('Change config for:', message.visualization?.id);
                           }}
+                          onSendToDashboard={() => onSendToDashboard(message.visualization!)}
                         />
                       </div>
                     )}
@@ -163,7 +126,6 @@ const ChatInterface = ({ messages, isLoading, onSendMessage }: ChatInterfaceProp
               </div>
             )}
           </>
-        )}
         <div ref={messagesEndRef} />
       </div>
 

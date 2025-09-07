@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Settings, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import {Download, Settings, X, ZoomIn, ZoomOut, RotateCcw, LayoutDashboard} from "lucide-react";
 import { Visualization } from "@/types";
 import Plot from "react-plotly.js";
 import Plotly from "plotly.js-dist";
@@ -12,6 +12,7 @@ interface VisualizationCardProps {
   onDownload: () => void;
   onConfigChange: () => void;
   onRemove?: () => void;
+  onSendToDashboard?: () => void;
 }
 
 const VisualizationCard = ({ 
@@ -19,9 +20,41 @@ const VisualizationCard = ({
   isInChat = false, 
   onDownload, 
   onConfigChange,
-  onRemove 
+  onRemove,
+  onSendToDashboard
 }: VisualizationCardProps) => {
-  const plotRef = useRef<any>(null);
+    const plotGdRef = useRef<any>(null);
+
+    const attachGraphDiv = useCallback((_figure: any, graphDiv: any) => {
+        plotGdRef.current = graphDiv;
+    }, []);
+
+    const getAxisRanges = () => {
+        const gd = plotGdRef.current;
+        if (!gd) return null;
+
+        const full = gd._fullLayout || gd.layout;
+        const x = full?.xaxis;
+        const y = full?.yaxis;
+        if (!x || !y || !x.range || !y.range) return null; // no simple cartesian axes
+
+        // convert dates to numbers if needed, so math works
+        const toNum = (v: any) =>
+            v instanceof Date ? v.getTime() :
+                (typeof v === "string" && !isNaN(Date.parse(v))) ? Date.parse(v) : v;
+
+        const toSameType = (v: number, sample: any) =>
+            (sample instanceof Date) ? new Date(v) :
+                (typeof sample === "string" && !isNaN(Date.parse(sample))) ? new Date(v).toISOString() : v;
+
+        const xr = x.range;
+        const yr = y.range;
+
+        const x0 = toNum(xr[0]); const x1 = toNum(xr[1]);
+        const y0 = toNum(yr[0]); const y1 = toNum(yr[1]);
+
+        return { xr, yr, x0, x1, y0, y1, toSameType };
+    }
   
   const handleDownloadVisualization = () => {
     const title = visualization.title || `${visualization.type}_visualization`;
@@ -65,58 +98,67 @@ const VisualizationCard = ({
   };
   
   // Zoom and reset functions
-  const handleZoomIn = useCallback(() => {
-    if (plotRef.current) {
-      const currentLayout = plotRef.current.layout;
-      const xRange = currentLayout.xaxis?.range;
-      const yRange = currentLayout.yaxis?.range;
-      
-      if (xRange && yRange) {
-        const xCenter = (xRange[0] + xRange[1]) / 2;
-        const yCenter = (yRange[0] + yRange[1]) / 2;
-        const xSpan = (xRange[1] - xRange[0]) * 0.7;
-        const ySpan = (yRange[1] - yRange[0]) * 0.7;
-        
-        Plotly.relayout(plotRef.current, {
-          'xaxis.range': [xCenter - xSpan/2, xCenter + xSpan/2],
-          'yaxis.range': [yCenter - ySpan/2, yCenter + ySpan/2]
-        });
-      }
-    }
-  }, []);
+    const handleZoomIn = useCallback(() => {
+        const gd = plotGdRef.current;
+        if (!gd) return;
 
-  const handleZoomOut = useCallback(() => {
-    if (plotRef.current) {
-      const currentLayout = plotRef.current.layout;
-      const xRange = currentLayout.xaxis?.range;
-      const yRange = currentLayout.yaxis?.range;
-      
-      if (xRange && yRange) {
-        const xCenter = (xRange[0] + xRange[1]) / 2;
-        const yCenter = (yRange[0] + yRange[1]) / 2;
-        const xSpan = (xRange[1] - xRange[0]) * 1.4;
-        const ySpan = (yRange[1] - yRange[0]) * 1.4;
-        
-        Plotly.relayout(plotRef.current, {
-          'xaxis.range': [xCenter - xSpan/2, xCenter + xSpan/2],
-          'yaxis.range': [yCenter - ySpan/2, yCenter + ySpan/2]
-        });
-      }
-    }
-  }, []);
+        const r = getAxisRanges();
+        if (!r) return;
 
-  const handleResetZoom = useCallback(() => {
-    if (plotRef.current) {
-      Plotly.relayout(plotRef.current, {
-        'xaxis.autorange': true,
-        'yaxis.autorange': true
-      });
-    }
-  }, []);
+        const zoomFactor = 0.95;
+        const xC = (r.x0 + r.x1) / 2;
+        const yC = (r.y0 + r.y1) / 2;
+        const xSpan = (r.x1 - r.x0) * zoomFactor;
+        const ySpan = (r.y1 - r.y0) * zoomFactor;
+
+        const newX0 = r.toSameType(xC - xSpan / 2, r.xr[0]);
+        const newX1 = r.toSameType(xC + xSpan / 2, r.xr[0]);
+        const newY0 = r.toSameType(yC - ySpan / 2, r.yr[0]);
+        const newY1 = r.toSameType(yC + ySpan / 2, r.yr[0]);
+
+        Plotly.relayout(gd, {
+            "xaxis.autorange": false,
+            "yaxis.autorange": false,
+            "xaxis.range": [newX0, newX1],
+            "yaxis.range": [newY0, newY1],
+        });
+    }, []);
+
+    const handleZoomOut = useCallback(() => {
+        const gd = plotGdRef.current;
+        if (!gd) return;
+
+        const r = getAxisRanges();
+        if (!r) return;
+
+        const zoomFactor = 1.05;
+        const xC = (r.x0 + r.x1) / 2;
+        const yC = (r.y0 + r.y1) / 2;
+        const xSpan = (r.x1 - r.x0) * zoomFactor;
+        const ySpan = (r.y1 - r.y0) * zoomFactor;
+
+        const newX0 = r.toSameType(xC - xSpan / 2, r.xr[0]);
+        const newX1 = r.toSameType(xC + xSpan / 2, r.xr[0]);
+        const newY0 = r.toSameType(yC - ySpan / 2, r.yr[0]);
+        const newY1 = r.toSameType(yC + ySpan / 2, r.yr[0]);
+
+        Plotly.relayout(gd, {
+            "xaxis.autorange": false,
+            "yaxis.autorange": false,
+            "xaxis.range": [newX0, newX1],
+            "yaxis.range": [newY0, newY1],
+        });
+    }, []);
+
+    const handleResetZoom = useCallback(() => {
+        const gd = plotGdRef.current;
+        if (!gd) return;
+        Plotly.relayout(gd, { "xaxis.autorange": true, "yaxis.autorange": true });
+    }, []);
 
   // Get dimensions from config_used if available
   const getVisualizationDimensions = () => {
-    const configData = visualization.config_used?.data?.visualization;
+    const configData = visualization.config_used;
     if (configData && configData.width && configData.height) {
       return {
         width: Math.max(configData.width, isInChat ? 400 : 700),
@@ -144,7 +186,19 @@ const VisualizationCard = ({
           </p>
         </div>
         
-        <div className={`flex items-center space-x-2 ${isInChat ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-smooth`}>
+        <div onMouseDown={(e) => e.stopPropagation()}
+            className={`flex items-center space-x-2 ${isInChat ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-smooth`}>
+            {isInChat && onSendToDashboard && (
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onSendToDashboard}
+                    className="h-8 w-8 p-0"
+                    title="Send to Dashboard"
+                >
+                    <LayoutDashboard className="w-4 h-4" />
+                </Button>
+            )}
           <Button
             variant="ghost"
             size="sm"
@@ -183,7 +237,6 @@ const VisualizationCard = ({
           style={isInChat ? { height: '300px' } : { minHeight: '400px', height: 'auto' }}
         >
           <Plot
-            ref={plotRef}
             data={visualization.figure.data}
             layout={{
               ...visualization.figure.layout,
@@ -207,6 +260,9 @@ const VisualizationCard = ({
               scrollZoom: true,
               doubleClick: 'reset+autosize'
             }}
+            plotly={Plotly}
+            onInitialized={attachGraphDiv}
+            onUpdate={attachGraphDiv}
             style={{ 
               width: isInChat ? '100%' : dimensions.width, 
               height: isInChat ? '100%' : dimensions.height 

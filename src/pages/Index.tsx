@@ -7,42 +7,6 @@ import Dashboard from "@/components/Dashboard";
 import {getSessionId} from "@/utils/session.ts";
 import {API_ROUTES} from "@/utils/api.ts";
 
-// Mock data for demonstration
-const mockVisualizations = {
-  scatter: {
-    data: [
-      {
-        x: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        y: [2, 6, 3, 8, 4, 9, 5, 7, 6, 8],
-        mode: 'markers',
-        type: 'scatter',
-        name: 'Data Points',
-        marker: { color: 'hsl(200, 95%, 40%)', size: 8 },
-      },
-    ],
-    layout: {
-      title: 'Node Distribution Analysis',
-      xaxis: { title: 'Time Period' },
-      yaxis: { title: 'Node Count' },
-    },
-  },
-  bar: {
-    data: [
-      {
-        x: ['Nodes', 'Relationships', 'Properties', 'Labels'],
-        y: [150, 89, 45, 12],
-        type: 'bar',
-        marker: { color: ['hsl(200, 95%, 40%)', 'hsl(200, 100%, 60%)', 'hsl(220, 15%, 96%)', 'hsl(200, 100%, 95%)'] },
-      },
-    ],
-    layout: {
-      title: 'Database Statistics',
-      xaxis: { title: 'Entity Type' },
-      yaxis: { title: 'Count' },
-    },
-  },
-};
-
 const Index = () => {
   const [appState, setAppState] = useState<AppState>({
     isUploaded: false,
@@ -165,6 +129,19 @@ const Index = () => {
     }));
   }, []);
 
+   const handleSendToDashboard = useCallback((viz: Visualization) => {
+        setAppState(prev => {
+            const alreadyInDashboard = prev.visualizations.some(v => v.id === viz.id);
+            return {
+                ...prev,
+                visualizations: alreadyInDashboard
+                    ? prev.visualizations
+                    : [...prev.visualizations, viz],
+                activeTab: 'dashboard',
+            };
+        });
+    }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {appState.isUploaded && (
@@ -182,6 +159,7 @@ const Index = () => {
           messages={appState.chatMessages}
           isLoading={appState.isLoading}
           onSendMessage={handleSendMessage}
+          onSendToDashboard={handleSendToDashboard}
         />
       ) : (
         <Dashboard

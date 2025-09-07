@@ -27,16 +27,15 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
   const [isConfigEditorOpen, setIsConfigEditorOpen] = useState(false);
   const { toast } = useToast();
 
-  // Generate default layout for visualizations with proper sizing
   const defaultLayout: Layout[] = useMemo(() => {
     return visualizations.map((viz, index) => {
-      const configData = viz.config_used?.data?.visualization;
+      const configData = viz.config_used;
       
       // Set default proportional size: 700px width, 500px height
       const defaultWidth = 700;
       const defaultHeight = 500;
-      const minWidth = Math.max(Math.ceil((defaultWidth + 100) / 76), 10); // ~10 grid units for 700px
-      const minHeight = Math.max(Math.ceil((defaultHeight + 150) / 76), 9); // ~9 grid units for 500px
+      const minWidth = Math.max(Math.ceil((defaultWidth + 100) / 76), 10);
+      const minHeight = Math.max(Math.ceil((defaultHeight + 50) / 30), 5);
       
       let width = minWidth;
       let height = minHeight;
@@ -191,14 +190,14 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
       </div>
 
       {/* Grid Layout */}
-      <div className="p-6 min-h-full dashboard-bg">
+      <div className="p-6 dashboard-bg" style={{ minHeight: 'calc(100vh - 4rem)', overflowY: 'auto' }}>
         <ResponsiveGridLayout
           className="layout"
           layouts={dashboardLayouts}
           onLayoutChange={handleLayoutChange}
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
           cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-          rowHeight={60}
+          rowHeight={20}
           isDraggable={true}
           isResizable={true}
           margin={[16, 16]}
