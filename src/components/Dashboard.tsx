@@ -7,6 +7,7 @@ import { Visualization, GridLayout } from "@/types";
 import VisualizationCard from "./VisualizationCard";
 import ConfigEditor from "./ConfigEditor";
 import { useToast } from "@/hooks/use-toast";
+import { getSessionId } from "@/utils/session";
 import html2canvas from "html2canvas";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -30,13 +31,18 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
   const defaultLayout: Layout[] = useMemo(() => {
     return visualizations.map((viz, index) => {
       const configData = viz.config_used?.data?.visualization;
-      let width = 6;
-      let height = 4;
       
-      // Calculate grid units from pixel dimensions (60px per unit + 16px margin)
+      // Set minimum size to 800px width, 600px height
+      const minWidth = Math.max(Math.ceil((800 + 100) / 76), 12); // ~12 grid units for 800px
+      const minHeight = Math.max(Math.ceil((600 + 150) / 76), 10); // ~10 grid units for 600px
+      
+      let width = minWidth;
+      let height = minHeight;
+      
+      // Calculate grid units from pixel dimensions if specified, but enforce minimums
       if (configData && configData.width && configData.height) {
-        width = Math.max(Math.ceil((configData.width + 100) / 76), 4);
-        height = Math.max(Math.ceil((configData.height + 150) / 76), 3);
+        width = Math.max(Math.ceil((configData.width + 100) / 76), minWidth);
+        height = Math.max(Math.ceil((configData.height + 150) / 76), minHeight);
       }
       
       return {
@@ -45,8 +51,8 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
         y: Math.floor(index / 2) * height,
         w: width,
         h: height,
-        minW: 4,
-        minH: 3,
+        minW: minWidth,
+        minH: minHeight,
       };
     });
   }, [visualizations]);
@@ -56,10 +62,8 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
   };
 
   const handleDownload = (visualization: Visualization) => {
-    toast({
-      title: "Download started",
-      description: `Downloading ${visualization.title || 'visualization'}...`,
-    });
+    // This will be handled by the VisualizationCard component
+    // No need to do anything here, the card handles its own download
   };
 
   const handleConfigChange = (visualization: Visualization) => {
@@ -98,8 +102,9 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
       useCORS: true,
       allowTaint: true
     }).then((canvas) => {
+      const sessionId = getSessionId() || 'unknown';
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filename = `dashboard_${timestamp}.png`;
+      const filename = `${sessionId}_${timestamp}.png`;
       
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');

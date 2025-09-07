@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Settings, X } from "lucide-react";
+import { Download, Settings, X, ZoomIn, ZoomOut, Camera, RotateCcw } from "lucide-react";
 import { Visualization } from "@/types";
 import Plot from "react-plotly.js";
 import Plotly from "plotly.js-dist";
@@ -67,11 +67,14 @@ const VisualizationCard = ({
     const configData = visualization.config_used?.data?.visualization;
     if (configData && configData.width && configData.height) {
       return {
-        width: Math.max(configData.width, 400),
-        height: Math.max(configData.height, 300)
+        width: Math.max(configData.width, isInChat ? 400 : 800),
+        height: Math.max(configData.height, isInChat ? 300 : 600)
       };
     }
-    return { width: '100%', height: isInChat ? '300px' : '100%' };
+    return { 
+      width: isInChat ? '100%' : 800, 
+      height: isInChat ? '300px' : 600 
+    };
   };
 
   const dimensions = getVisualizationDimensions();
@@ -144,9 +147,8 @@ const VisualizationCard = ({
               }
             }}
             config={{
-              displayModeBar: !isInChat,
+              displayModeBar: false,
               displaylogo: false,
-              modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian'],
               responsive: true,
               staticPlot: false,
               scrollZoom: true,
@@ -159,6 +161,45 @@ const VisualizationCard = ({
             useResizeHandler={true}
           />
         </div>
+        
+        {/* Plotly Toolbar - Only show in dashboard view */}
+        {!isInChat && (
+          <div className="mt-3 flex items-center justify-center space-x-2 p-2 bg-card/50 rounded-lg border border-border/50">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Zoom In"
+            >
+              <ZoomIn className="w-3 h-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-3 h-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDownloadVisualization}
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Download Snapshot"
+            >
+              <Camera className="w-3 h-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Reset Zoom"
+            >
+              <RotateCcw className="w-3 h-3" />
+            </Button>
+          </div>
+        )}
         
         {isInChat && (
           <div className="mt-3 p-3 bg-accent/50 rounded-lg">
