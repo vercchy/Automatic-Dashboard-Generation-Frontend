@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Upload, Database, Sparkles, FileText, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {saveSessionId} from "@/utils/session.ts";
+import {API_ROUTES} from "@/utils/api.ts";
 
 interface UploadScreenProps {
   onUploadSuccess: (filename: string) => void;
@@ -24,46 +26,78 @@ const UploadScreen = ({ onUploadSuccess }: UploadScreenProps) => {
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const files = e.dataTransfer.files;
     if (files.length > 0) {
-      handleFileUpload(files[0]);
+      await handleFileUpload(files[0]);
     }
   };
 
   const handleFileUpload = async (file: File) => {
-    if (!file.name.endsWith('.dump')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload a .dump file",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!validateFileEndsWithDump(file)) return;
 
     setIsUploading(true);
-    
-    // Simulate upload process
-    setTimeout(() => {
-      setIsUploading(false);
-      onUploadSuccess(file.name);
+
+      try {
+          const formData = new FormData();
+          formData.append("file", file);
+
+          const response = await fetch(API_ROUTES.upload, {
+              method: "POST",
+              body: formData,
+          });
+
+          if (!response.ok) {
+              const err = await response.json();
+              throw new Error(err.detail || "Upload failed");
+          }
+
+          await processSuccessfulUpload(response, file.name)
+      } catch (error) {
+          toast({
+              title: "Upload failed",
+              description: error.message || "Something went wrong",
+              variant: "destructive",
+          });
+      } finally {
+          setIsUploading(false);
+      }
+  };
+
+  const validateFileEndsWithDump = (file: File) : boolean => {
+      if (!file.name.endsWith('.dump')) {
+          toast({
+              title: "Invalid file type",
+              description: "Please upload a .dump file",
+              variant: "destructive",
+          });
+          return false;
+      }
+      return true;
+  };
+
+  const processSuccessfulUpload = async (response: Response, fileName: string) => {
+      const data = await response.json();
+      saveSessionId(data.session_id);
+
       toast({
-        title: "Upload successful",
-        description: `${file.name} has been uploaded and processed.`,
+          title: "Upload successful",
+          description: `${fileName} has been uploaded and processed.`,
       });
-    }, 2000);
+
+      onUploadSuccess(data.session_id);
   };
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleFileUpload(files[0]);
+      await handleFileUpload(files[0]);
     }
   };
 
@@ -79,7 +113,7 @@ const UploadScreen = ({ onUploadSuccess }: UploadScreenProps) => {
             Data Exploration Platform
           </h1>
           <p className="text-xl text-muted-foreground max-w-lg mx-auto">
-            Upload your Neo4j database dump to start exploring and generating beautiful visualizations through natural language conversations.
+              Upload your Neo4j database dump, ask questions in natural language, and get the most suitable visualizations automatically added to your dashboard.
           </p>
         </div>
 
@@ -89,14 +123,14 @@ const UploadScreen = ({ onUploadSuccess }: UploadScreenProps) => {
             <Sparkles className="w-8 h-8 text-primary mx-auto mb-3" />
             <h3 className="font-semibold mb-2">AI-Powered Analysis</h3>
             <p className="text-sm text-muted-foreground">
-              Chat with your data using natural language queries
+                Query your database using natural language and see results instantly.
             </p>
           </Card>
           <Card className="p-4 text-center card-elevated">
             <BarChart3 className="w-8 h-8 text-primary mx-auto mb-3" />
             <h3 className="font-semibold mb-2">Interactive Visualizations</h3>
             <p className="text-sm text-muted-foreground">
-              Generate and customize beautiful charts and graphs
+              Generate and customize charts and graphs
             </p>
           </Card>
           <Card className="p-4 text-center card-elevated">

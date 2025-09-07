@@ -4,6 +4,8 @@ import TabNavigation from "@/components/TabNavigation";
 import UploadScreen from "@/components/UploadScreen";
 import ChatInterface from "@/components/ChatInterface";
 import Dashboard from "@/components/Dashboard";
+import {getSessionId} from "@/utils/session.ts";
+import {API_ROUTES} from "@/utils/api.ts";
 
 // Mock data for demonstration
 const mockVisualizations = {
@@ -59,14 +61,14 @@ const Index = () => {
         {
           id: '1',
           type: 'bot',
-          content: `Great! I've successfully loaded your database: ${filename}\n\nI can now help you explore your data. Here are some things you can ask me:\n\n• "Show me the distribution of nodes"\n• "What are the most connected entities?"\n• "Create a network visualization"\n• "Analyze the relationship patterns"\n\nWhat would you like to explore first?`,
+          content: `Database uploaded: ${filename}. You can now start asking questions.`,
           timestamp: new Date().toISOString(),
         },
       ],
     }));
   }, []);
 
-  const handleSendMessage = useCallback((message: string) => {
+  const handleSendMessage = useCallback(async (message: string) => {
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       type: 'user',
@@ -80,55 +82,60 @@ const Index = () => {
       isLoading: true,
     }));
 
-    // Simulate AI response with visualization
-    setTimeout(() => {
-      const isVisualizationRequest = message.toLowerCase().includes('show') || 
-                                   message.toLowerCase().includes('chart') || 
-                                   message.toLowerCase().includes('graph') ||
-                                   message.toLowerCase().includes('distribution') ||
-                                   message.toLowerCase().includes('analyze');
+      try {
+          const response = await fetch(API_ROUTES.query, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                  session_id: getSessionId(),
+                  question: message,
+              }),
+          });
 
-      let visualization: Visualization | undefined;
-      
-      if (isVisualizationRequest) {
-        const vizType = message.toLowerCase().includes('distribution') || message.toLowerCase().includes('scatter') ? 'scatter' : 'bar';
-        const vizData = vizType === 'scatter' ? mockVisualizations.scatter : mockVisualizations.bar;
-        
-        visualization = {
-          id: `viz-${Date.now()}`,
-          figure: vizData,
-          type: vizType === 'scatter' ? 'Scatter Plot' : 'Bar Chart',
-          config_used: {
-            chart_type: vizType,
-            color_scheme: 'primary',
-            show_legend: true,
-            animation_enabled: true,
-            data_points: vizType === 'scatter' ? 10 : 4,
-          },
-          generated_at: new Date().toISOString(),
-          title: vizData.layout.title,
-        };
+          const data = await response.json();
+
+          let visualization: Visualization | undefined = undefined;
+          if (data.success && data.visualization) {
+              const rawTitle = data.visualization.figure.layout?.title;
+              const title = typeof rawTitle === "string"
+                      ? rawTitle
+                      : rawTitle?.text ?? "Generated Visualization";
+              visualization = {
+                  id: `viz-${Date.now()}`,
+                  ...data.visualization,
+                  title: title,
+              };
+          }
+
+          const botMessage: ChatMessage = {
+              id: `bot-${Date.now()}`,
+              type: "bot",
+              content: data.message + "\n" + !data.success ? data.error : undefined,
+              visualization,
+              timestamp: new Date().toISOString(),
+          };
+
+          setAppState((prev) => ({
+              ...prev,
+              chatMessages: [...prev.chatMessages, botMessage],
+              visualizations: visualization
+                  ? [...prev.visualizations, visualization]
+                  : prev.visualizations,
+              isLoading: false,
+          }));
+      } catch (err) {
+          const errorMessage: ChatMessage = {
+              id: `bot-${Date.now()}`,
+              type: "bot",
+              content: err.message,
+              timestamp: new Date().toISOString(),
+          };
+          setAppState((prev) => ({
+              ...prev,
+              chatMessages: [...prev.chatMessages, errorMessage],
+              isLoading: false,
+          }));
       }
-
-      const botMessage: ChatMessage = {
-        id: `bot-${Date.now()}`,
-        type: 'bot',
-        content: isVisualizationRequest 
-          ? `I've analyzed your data and created a visualization showing the ${message.toLowerCase().includes('distribution') ? 'distribution patterns' : 'statistical overview'}. The chart reveals interesting patterns in your dataset that can help guide further analysis.`
-          : `I understand you're asking about "${message}". Based on your Neo4j database, I can provide insights and create visualizations to help answer your question. Would you like me to create a specific chart or analysis for this?`,
-        visualization,
-        timestamp: new Date().toISOString(),
-      };
-
-      setAppState(prev => ({
-        ...prev,
-        chatMessages: [...prev.chatMessages, botMessage],
-        visualizations: visualization 
-          ? [...prev.visualizations, visualization]
-          : prev.visualizations,
-        isLoading: false,
-      }));
-    }, 2000);
   }, []);
 
   const handleTabChange = useCallback((tab: 'chat' | 'dashboard') => {

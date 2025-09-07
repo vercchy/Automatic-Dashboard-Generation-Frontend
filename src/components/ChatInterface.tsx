@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Send, Bot, User, Loader2 } from "lucide-react";
+import Plotly from "plotly.js-dist";
 import { ChatMessage } from "@/types";
 import VisualizationCard from "./VisualizationCard";
 
@@ -55,6 +56,26 @@ const ChatInterface = ({ messages, isLoading, onSendMessage }: ChatInterfaceProp
     textarea.style.height = `${newHeight}px`;
     setIsExpanded(newHeight > 40);
   };
+
+    const handleDownloadVisualization = (figure) => {
+        if (!figure) return;
+        const rawTitle = figure.layout?.title;
+        const title = typeof rawTitle === "string"
+            ? rawTitle
+            : rawTitle?.text ?? "Generated Visualization";
+        const title_with_underscores = title.replace(' ', '_')
+
+        Plotly.toImage(figure, { format: "png", width: 800, height: 600 })
+            .then((url) => {
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = title_with_underscores;
+                link.click();
+            })
+            .catch((err) => {
+                console.error("Failed to download visualization:", err);
+            });
+    };
 
   const TypingIndicator = () => (
     <div className="flex items-center space-x-1">
@@ -116,10 +137,7 @@ const ChatInterface = ({ messages, isLoading, onSendMessage }: ChatInterfaceProp
                         <VisualizationCard
                           visualization={message.visualization}
                           isInChat={true}
-                          onDownload={() => {
-                            // Download implementation would go here
-                            console.log('Download visualization:', message.visualization?.id);
-                          }}
+                          onDownload={() => handleDownloadVisualization(message.visualization.figure)}
                           onConfigChange={() => {
                             // Config change implementation would go here
                             console.log('Change config for:', message.visualization?.id);
