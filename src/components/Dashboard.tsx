@@ -7,6 +7,7 @@ import { Visualization, GridLayout } from "@/types";
 import VisualizationCard from "./VisualizationCard";
 import ConfigEditor from "./ConfigEditor";
 import { useToast } from "@/hooks/use-toast";
+import html2canvas from "html2canvas";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
@@ -25,17 +26,29 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
   const [isConfigEditorOpen, setIsConfigEditorOpen] = useState(false);
   const { toast } = useToast();
 
-  // Generate default layout for visualizations
+  // Generate default layout for visualizations with proper sizing
   const defaultLayout: Layout[] = useMemo(() => {
-    return visualizations.map((viz, index) => ({
-      i: viz.id,
-      x: (index % 2) * 6,
-      y: Math.floor(index / 2) * 4,
-      w: 6,
-      h: 4,
-      minW: 4,
-      minH: 3,
-    }));
+    return visualizations.map((viz, index) => {
+      const configData = viz.config_used?.data?.visualization;
+      let width = 6;
+      let height = 4;
+      
+      // Calculate grid units from pixel dimensions (60px per unit + 16px margin)
+      if (configData && configData.width && configData.height) {
+        width = Math.max(Math.ceil((configData.width + 100) / 76), 4);
+        height = Math.max(Math.ceil((configData.height + 150) / 76), 3);
+      }
+      
+      return {
+        i: viz.id,
+        x: (index % 2) * 6,
+        y: Math.floor(index / 2) * height,
+        w: width,
+        h: height,
+        minW: 4,
+        minH: 3,
+      };
+    });
   }, [visualizations]);
 
   const handleLayoutChange = (layout: Layout[], layouts: { [key: string]: Layout[] }) => {
@@ -43,14 +56,10 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
   };
 
   const handleDownload = (visualization: Visualization) => {
-    // Mock download implementation
     toast({
       title: "Download started",
       description: `Downloading ${visualization.title || 'visualization'}...`,
     });
-    
-    // In a real implementation, this would trigger the actual download
-    console.log('Downloading visualization:', visualization);
   };
 
   const handleConfigChange = (visualization: Visualization) => {
@@ -75,13 +84,40 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
   };
 
   const handleDownloadAll = () => {
+    const dashboardElement = document.querySelector('.layout');
+    if (!dashboardElement) return;
+    
     toast({
       title: "Download all started",
-      description: `Downloading all ${visualizations.length} visualizations...`,
+      description: `Creating dashboard screenshot...`,
     });
     
-    // In a real implementation, this would create a zip file or similar
-    console.log('Downloading all visualizations:', visualizations);
+    html2canvas(dashboardElement as HTMLElement, {
+      backgroundColor: '#0a0a0b',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true
+    }).then((canvas) => {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `dashboard_${timestamp}.png`;
+      
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = filename;
+      link.click();
+      
+      toast({
+        title: "Download complete",
+        description: `Dashboard saved as ${filename}`,
+      });
+    }).catch((err) => {
+      console.error('Failed to download dashboard:', err);
+      toast({
+        title: "Download failed",
+        description: "Could not create dashboard screenshot",
+        variant: "destructive"
+      });
+    });
   };
 
   if (visualizations.length === 0) {
