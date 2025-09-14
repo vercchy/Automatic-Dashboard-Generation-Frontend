@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import {useState, useMemo, useEffect} from "react";
 import { Responsive, WidthProvider, Layout } from "react-grid-layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,44 +27,31 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
   const [isConfigEditorOpen, setIsConfigEditorOpen] = useState(false);
   const { toast } = useToast();
 
-  const defaultLayout: Layout[] = useMemo(() => {
-    return visualizations.map((viz, index) => {
-      const configData = viz.config_used;
-      
-      // Set default proportional size: 700px width, 500px height
-      const defaultWidth = 700;
-      const defaultHeight = 500;
-      const minWidth = Math.max(Math.ceil((defaultWidth + 100) / 76), 10);
-      const minHeight = Math.max(Math.ceil((defaultHeight + 50) / 30), 5);
-      
-      let width = minWidth;
-      let height = minHeight;
-      
-      // Calculate grid units from pixel dimensions if specified, but enforce minimums
-      if (configData && configData.width && configData.height) {
-        width = Math.max(Math.ceil((configData.width + 100) / 76), minWidth);
-        height = Math.max(Math.ceil((configData.height + 150) / 76), minHeight);
-      }
-      
-      return {
-        i: viz.id,
-        x: (index % 2) * 6,
-        y: Math.floor(index / 2) * height,
-        w: width,
-        h: height,
-        minW: minWidth,
-        minH: minHeight,
-      };
-    });
-  }, [visualizations]);
+  const makeItem = (id: string, index: number) => ({
+      i: id,
+      x: (index * 6) % 12,
+      y: Infinity,
+      w: 6,
+      h: 12,
+      minW: 4,
+      minH: 6,
+      maxW: 2
+  });
+
+  const baseLayout = visualizations.map((viz, idx) => makeItem(viz.id, idx));
+  const baseLayouts = { lg: baseLayout, md: baseLayout, sm: baseLayout, xs: baseLayout, xxs: baseLayout };
+
+  useEffect(() => {
+      const empty = !dashboardLayouts || Object.keys(dashboardLayouts).length === 0;
+      if (empty && visualizations.length > 0) {
+          onLayoutChange(baseLayouts);
+      }}, [visualizations.length]);
 
   const handleLayoutChange = (layout: Layout[], layouts: { [key: string]: Layout[] }) => {
     onLayoutChange(layouts);
   };
 
   const handleDownload = (visualization: Visualization) => {
-    // This will be handled by the VisualizationCard component
-    // No need to do anything here, the card handles its own download
   };
 
   const handleConfigChange = (visualization: Visualization) => {
