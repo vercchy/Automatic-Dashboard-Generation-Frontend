@@ -208,14 +208,14 @@ const VisualizationCard = ({
             <Download className="w-4 h-4" />
           </Button>
           
-          <Button
+          {/*<Button
             variant="ghost"
             size="sm"
             onClick={onConfigChange}
             className="h-8 w-8 p-0"
           >
             <Settings className="w-4 h-4" />
-          </Button>
+          </Button>*/}
           
           {!isInChat && onRemove && (
             <Button
@@ -270,10 +270,12 @@ const VisualizationCard = ({
             useResizeHandler={true}
           />
         </div>
-        
-        {/* Plotly Toolbar - Only show in dashboard view */}
+
         {!isInChat && (
-          <div className="mt-3 flex items-center justify-center space-x-2 p-2 bg-card/50 rounded-lg border border-border/50">
+            <div
+                className="mt-3 flex items-center justify-center space-x-2 p-2 bg-card/50 rounded-lg border border-border/50"
+                onMouseDown={(e) => e.stopPropagation()}
+            >
             <Button
               variant="ghost"
               size="sm"

@@ -27,31 +27,38 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
   const [isConfigEditorOpen, setIsConfigEditorOpen] = useState(false);
   const { toast } = useToast();
 
-  const makeItem = (id: string, index: number) => ({
+  const pixelsToGridWidth = (pixels: number, containerWidth: number = 1200, cols: number = 12) => {
+      const columnWidth = (containerWidth - 32) / cols;
+      return Math.max(1, Math.round(pixels / columnWidth));
+  };
+
+  const pixelsToGridHeight = (pixels: number, rowHeight: number = 20) => {
+      return Math.max(1, Math.round(pixels / rowHeight));
+  };
+
+  const makeItem = (id: string, index: number, config_used: Record<string, any>) => ({
       i: id,
       x: (index * 6) % 12,
       y: Infinity,
       w: 6,
-      h: 12,
+      h: 8,
       minW: 4,
       minH: 6,
-      maxW: 2
+      maxW: 7.8,
+      maxH: 15,
   });
 
-  const baseLayout = visualizations.map((viz, idx) => makeItem(viz.id, idx));
-  const baseLayouts = { lg: baseLayout, md: baseLayout, sm: baseLayout, xs: baseLayout, xxs: baseLayout };
+  const baseLayout = visualizations.map((viz, idx) => makeItem(viz.id, idx, viz.config_used));
+  dashboardLayouts = { lg: baseLayout, md: baseLayout, sm: baseLayout, xs: baseLayout, xxs: baseLayout };
 
   useEffect(() => {
       const empty = !dashboardLayouts || Object.keys(dashboardLayouts).length === 0;
       if (empty && visualizations.length > 0) {
-          onLayoutChange(baseLayouts);
+          onLayoutChange(dashboardLayouts);
       }}, [visualizations.length]);
 
   const handleLayoutChange = (layout: Layout[], layouts: { [key: string]: Layout[] }) => {
     onLayoutChange(layouts);
-  };
-
-  const handleDownload = (visualization: Visualization) => {
   };
 
   const handleConfigChange = (visualization: Visualization) => {
@@ -76,7 +83,7 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
   };
 
   const handleDownloadAll = () => {
-    const dashboardElement = document.querySelector('.layout');
+    const dashboardElement = document.querySelector('#dashboard');
     if (!dashboardElement) return;
     
     toast({
@@ -177,7 +184,7 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
       </div>
 
       {/* Grid Layout */}
-      <div className="p-6 dashboard-bg" style={{ minHeight: 'calc(100vh - 4rem)', overflowY: 'auto' }}>
+      <div id ="dashboard" className="p-6 dashboard-bg" style={{ minHeight: 'calc(100vh - 4rem)', overflowY: 'auto' }}>
         <ResponsiveGridLayout
           className="layout"
           layouts={dashboardLayouts}
@@ -196,7 +203,7 @@ const Dashboard = ({ visualizations, dashboardLayouts, onVisualizationUpdate, on
             <div key={visualization.id}>
               <VisualizationCard
                 visualization={visualization}
-                onDownload={() => handleDownload(visualization)}
+                onDownload={() => {}}
                 onConfigChange={() => handleConfigChange(visualization)}
                 onRemove={() => onVisualizationRemove(visualization.id)}
               />
